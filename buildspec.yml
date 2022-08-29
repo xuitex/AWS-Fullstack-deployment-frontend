@@ -1,0 +1,36 @@
+version: 0.2
+env:
+  # variables:
+  #   REACT_APP_API_URL: "https://api.sanjeev.xyz/api/v1/restaurants"
+  # parameter-store:
+  #   REACT_APP_API_URL2: "react-api-url"
+  secrets-manager:
+    REACT_APP_API_URL: "yelp-api-key:react-api-url"
+phases:
+  install:
+    runtime-versions:
+      nodejs: 14
+  pre_build:
+    commands:
+      - aws --help
+      - echo Installing node modules 23d
+
+      # - echo parameter value is $REACT_URL
+      # - echo "parameter value is $REACT_URL"
+      - npm install
+  build:
+    commands:
+      - echo Running testsfs
+      - npm run test:nowatch
+      - npm run build
+  post_build:
+    commands:
+      - aws s3 sync --delete build/ s3://fullstack-deployment
+      - aws cloudfront create-invalidation --distribution-id E25K0YFJQZ08KS --paths /*
+
+artifacts:
+  files:
+    - "**/*"
+  base-directory: "build/"
+
+  name: myname-$(date +%Y-%m-%d)
